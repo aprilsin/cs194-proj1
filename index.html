@@ -1,0 +1,44 @@
+<html>
+<head>
+<style>
+h1 {text-align: center;}
+div {text-align: center;}
+</style>
+</head>
+<body>
+
+<h1> Images of the Russian Empire:
+Colorizing the Prokudin-Gorskii photo collection</h1>
+
+<h2> Project Overview </h2>
+<p> 
+	In 1907, Sergei Mikhailovich Prokudin-Gorskii (1863-1944) [Сергей Михайлович Прокудин-Горский] took color photographs of everything he saw. He accomplished this by using RGB filters and obtaining 3 glass plate negatives, RGB respectively. To view the colored images, we need to align and overlap the three plates. To improve results, it is also a good idea to make adjustments such as cropping, contrasting, white balance, color mapping, etc. The process of reproducing the color image is to be automated in this project. </p>
+
+<h2> Project Approach </h2>
+<h3> Alignment </h3>
+<p>
+	In this project, we are given input files with channels in the order BGR (as opposed to the conventional RGB). For simplicity, I aligned G and R channels to the B channel. My general approach is to have a fixed channel size of height <i> h </i> and width <i> w </i>. Then, we use an algorithm to find the best coordinate for the left-upper corner of each channel to which I call <i> start </i>. </p>
+
+<p><emphasis> 1. Basic Algorithm </emphasis></p>
+<p>
+	The first algorithm I adopted is to simply divide the image by three. So the <i> start </i> for BGR would be (0, 0), (h, 0) and (h*2, 0). Then stace them together using numpy.stack. This method gave pretty reliable results with low computation time.
+
+Here is an example result:
+The offset for BGR was (0, 0) (341, 0) (682, 0)
+<img src="./data/monastery.jpg" alt="Input">
+<img src="./output/monastery.jpg" alt="Input">
+</p>
+
+<p><emphasis> 2. Better Algorithm </emphasis></p>
+<p>
+	I implemented both Sum of Squared Differences (SSD) and normalized cross-correlation (NCC) algorithms. I select a window that is smaller than the channel size to create sub-matrices of the given
+
+</body>
+</html>
+
+Text giving a brief overview of the project, and text describing your approach. If you ran into problems on images, describe how you tried to solve them. The website does not need to be pretty; you just need to explain what you did.
+The result of your algorithm on all of our example images. List the offsets you calculated. Do not turn in the large .tiff images. Your web page should only display compressed images (e.g. jpg or png or gif if you want to animate something).
+The result of your algorithm on a few examples of your own choosing, downloaded from the Prokudin-Gorskii collection.
+If your algorithm failed to align any image, provide a brief explanation of why.
+Describe any bells and whistles you implemented. For maximum credit, show before and after images.
+Remember not to use any absolute links to images etc on your computer, as these will not work online. Only use relative links within your folder.
