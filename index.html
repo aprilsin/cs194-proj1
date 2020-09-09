@@ -1,16 +1,28 @@
 <html>
 <head>
 <style>
-h1 {text-align: center;}
+h1 {
+	text-align: center;
+}
 div {text-align: center;}
 img {max-width:400px;}
+body {
+padding: 100px;
+width: 1000px;
+margin: auto;
+text-align: left;
+font-weight: 300;
+font-family: 'Open Sans', sans-serif;
+}
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
 </style>
-</head>
+<header>
+    <h1 align="middle">CS 194-26 Fall 2020, Project 1: Images of the Russian Empire: Colorizing the Prokudin-Gorskii photo collection</h1>
+    <h2 align="middle">April Sin</h2>
+</header>
 <body>
-
-<h1> Images of the Russian Empire:
-Colorizing the Prokudin-Gorskii photo collection</h1>
-
 <h2> Project Overview </h2>
 <p> 
 	In 1907, Sergei Mikhailovich Prokudin-Gorskii (1863-1944) [Сергей Михайлович Прокудин-Горский] took color photographs of everything he saw. He accomplished this by using RGB filters and obtaining 3 glass plate negatives, RGB respectively. To view the colored images, we need to align and overlap the three plates. To improve results, it is also a good idea to make adjustments such as cropping, contrasting, white balance, color mapping, etc. The process of reproducing the color image is to be automated in this project. </p>
@@ -28,62 +40,32 @@ Colorizing the Prokudin-Gorskii photo collection</h1>
 <p><emphasis> 2. Better Algorithms </emphasis></p>
 <p>
 	I implemented both Sum of Squared Differences (SSD) and normalized cross-correlation (NCC) algorithms. I select a window that is smaller than the channel size to create sub-matrices for G and R channels. The sub-matrices are initialized to either 0 or infinity to suit the metric. This also help with handling out of bound windows.
+<h3> Image Pyramid </h3>	
+<p>
+	At first, I tried applying pyramid to the full input image that contains all three channels. It gave a very coarse alignment probably due to extra borders in the input image.
 
-<h2> Project Results </h2>
+	Then I was going to use border detection to remove borders then apply image pyramid. However, since I was not able to implement that, I opted for another approach.
 
-<h3> Example Results </h3>
-<img src="./output/castle" alt="castle">
-<img src="./output/cathedral" alt="cathedral">
-<img src="./output/emir" alt="emir">
-<img src="./output/harvesters" alt="harvesters">
-<img src="./output/icon" alt="icon">
-<img src="./output/lady" alt="lady">
-<img src="./output/melons" alt="melons">
-<img src="./output/monastery" alt="monastery">
-<img src="./output/onion_church" alt="onion_church">
-<img src="./output/self_portrait" alt="self_portrait">
-<img src="./output/three_generations" alt="three_generations">
-<img src="./output/tobolsk" alt="tobolsk">
-<img src="./output/train" alt="train">
-<img src="./output/workshop" alt="workshop">
+	Instead, I use the displacements of the basic algorithm as starting estimates for the three channels, then create three separate matrices corresponding to each channel.
+</p>
 
-<h4> Displacements </h4>
-The offset for RGB was ...
+
+<h3> Adjustments (Bells and Whisles) </h3>	
 <ul>
-	<li>castle - "(0, 0), (2833, 0), (6082, 0)"</li>
-	<li>cathedral - "(0, 0), (321, 0), (662, 0)"</li>
-	<li>emir - "(0, 0), (2793, 0), (6002, 0)"</li>
-	<li>harvesters - "(0, 0), (2790, 0), (6005, 0)"</li>
-	<li>icon - "(0, 0), (2810, 0), (6042, 0)"</li>
-	<li>lady - "(0, 0), (2789, 0), (5987, 0)"</li>
-	<li>melons - "(0, 0), (2827, 0), (6067, 0)"</li>
-	<li>monastery - "(0, 0), (321, 0), (662, 0)"</li>
-	<li>onion_church - "(0, 0), (2802, 0), (6007, 0)"</li>
-	<li>self_portrait - "(0, 0), (2826, 0), (6067, 0)"</li>
-	<li>three_generations - "(0, 0), (2779, 0), (5979, 0)"</li>
-	<li>tobolsk - "(0, 0), (321, 0), (662, 0)"</li>
-	<li>train - "(0, 0), (2811, 0), (6032, 0)"</li>
-	<li>workshop - "(0, 0), (2785, 0), (5977, 0)"</li>
-</ul>
-
-<h3> Extra Results </h3>
-<img src="./output/church" alt="church">
-<img src="./output/cotton" alt="cotton">
-<img src="./output/kapri" alt="kapri">
-<img src="./output/makhrovye" alt="makhrovye">
-
-<h4> Displacements </h4>
-The offset for BGR was ...
-<ul>
-	<li>church - "(0, 0), (2851, 0), (6114, 0)"</li>
-	<li>cotton - "(0, 0), (2814, 0), (6040, 0)"</li>
-	<li>kapri - "(0, 0), (321, 0), (662, 0)"</li>
-	<li>makhrovye - "(0, 0), (321, 0), (662, 0)"</li>
+	<li>
+		I added fix exposure which scales the brightest pixel as white and darkest pixel as black.
+	</li>
+	<li>
+		Both grey-world and white-world auto white balance (AWB) functions were implemented, but I tested that grey gives better results.
+	</li>
+	<li>
+		I attempted to use Canny edge detection for cropping but did not finish.
+	</li>
 </ul>
 
 <h2> After Thoughts </h2>
 <h3> Difficulties </h3>	
-	Buliding from scratch is really fun, but the downside it that it takes time to learn about new Python packages and to present the project as a whole nicely.
+	Buliding from scratch is really fun, but the downside is that it takes time to learn about new Python packages and to present the project as a whole nicely.
 
 	Since there are so many parameters, I struggled to come up with a set of standardized arguments to pass into my alignment algorithms. Initially I wanted everything to be adjustable, but it made it really hard to test results as well as the debugging followed. This contributed to not being able to align the channels as good as I wanted.
 
@@ -91,5 +73,70 @@ The offset for BGR was ...
 	I would like to implement adjustments before and after alignment. Maybe having a few repeated iterations of adjust, align, re-adjust, re-align can help find the best displacement values.
 
 	I would also like to experiment more on adjustments that can be made to make the results look better.
+
+<h2> Project Results </h2>
+<p> The displacements are (dy, dx) relative to the leftmost upper corner of the input image, presented in the order for B, G, and R channels.
+<h3> Example Results - Low Resolution Images </h3>
+
+<img src="./output/monastery"  width="400px">
+<figcaption  > monastery.jpg, "(0, 0), (321, 0), (662, 0)"</figcaption>
+<br>
+<img src="./output/tobolsk">
+<figcaption > tobolsk.jpg, "(0, 0), (321, 0), (662, 0)"</figcaption>
+<br>
+<img src="./output/cathedral"  width="400px">
+<figcaption  > cathedral.jpg, "(0, 0), (321, 0), (662, 0)"</figcaption>
+<br>
+<h3> Example Results - High Resolution Images </h3>
+<br>
+<img src="./output/workshop"  width="400px">
+<figcaption  >workshop.tif, "(0, 0), (3189, 0), (6398, 0)"</figcaption>
+<br>
+<img src="./output/emir"  width="400px">
+<figcaption  >emir.tif, "(0, 0), (3189, 0), (6398, 0)"</figcaption>
+<br>
+<img src="./output/three_generations"  width="400px">
+<figcaption  >three_generations.tif, "(0, 0), (3189, 0), (6398, 0)"</figcaption>
+<br>
+<img src="./output/castle"  width="400px">
+<figcaption  >castle.tif, "(0, 0), (3229, 0), (6478, 0)"</figcaption>
+<br>
+<img src="./output/melons"  width="400px">
+<figcaption  >melons.tif, "(0, 0), (3221, 0), (6462, 0)"</figcaption>
+<br>
+<img src="./output/onion_church"  width="400px">
+<figcaption  >onion_church.tif, "(0, 0), (3195, 0), (6410, 0)"</figcaption>
+<br>
+<img src="./output/train"  width="400px">
+<figcaption  >train.tif, "(0, 0), (3218, 0), (6456, 0)"</figcaption>
+<br>
+<img src="./output/icon"  width="400px">
+<figcaption  >icon.tif, "(0, 0), (3224, 0), (6468, 0)"</figcaption>
+<br>
+<img src="./output/self_portrait"  width="400px">
+<figcaption  >self_portrait.tif, "(0, 0), (3231, 0), (6482, 0)"</figcaption>
+<br>
+<img src="./output/harvesters"  width="400px">
+<figcaption  >harvesters.tif, "(0, 0), (3198, 0), (6416, 0)"</figcaption>
+<br>
+<img src="./output/lady"  width="400px">
+<figcaption  >lady.tif, "(0, 0), (3192, 0), (6404, 0)"</figcaption>
+<br>
+
+<h3> Extra Results </h3>
+
+<img src="./output/cotton"  width="400px">
+<figcaption  >cotton.tif, "(0, 0), (2814, 0), (6040, 0)"</figcaption>
+<br>
+<img src="./output/church"   width="400px">
+<figcaption  >church.tif, "(0, 0), (2851, 0), (6114, 0)"</figcaption>
+<br>
+<img src="./output/makhrovye"   width="400px">
+<figcaption  >makhrovye.jpg, "(0, 0), (321, 0), (662, 0)"</figcaption>
+<br>
+<img src="./output/kapri"   width="400px">
+<figcaption  >"kapri.jpg, (0, 0), (321, 0), (662, 0)"</figcaption>
+<br>
+
 </body>
 </html>
