@@ -1,142 +1,397 @@
 <html>
+
 <head>
-<style>
-h1 {
-	text-align: center;
-}
-div {text-align: center;}
-img {max-width:400px;}
-body {
-padding: 100px;
-width: 1000px;
-margin: auto;
-text-align: left;
-font-weight: 300;
-font-family: 'Open Sans', sans-serif;
-}
-  h1, h2, h3, h4 {
-    font-family: 'Source Sans Pro', sans-serif;
-  }
-</style>
-<header>
-    <h1 align="middle">CS 194-26 Fall 2020, Project 1: Images of the Russian Empire: Colorizing the Prokudin-Gorskii photo collection</h1>
-    <h2 align="middle">April Sin</h2>
-</header>
+	<style>
+		h1{
+			padding: 15px, 0px
+		}
+		h1,
+		h2,
+		h3,
+		h4 {
+			font-family: 'Source Sans Pro', sans-serif;
+		}
+		div {
+			text-align: center;
+		}
+
+		img {
+			width: 280px;
+		}
+		body {
+			padding: 100px;
+			width: 1000px;
+			text-align: left;
+			font-weight: 300;
+			font-family: 'Open Sans', sans-serif;
+		}
+	</style>
+	<header>
+		<h1 align="middle">CS 194-26 Fall 2020, Project 1: Images of the Russian Empire: Colorizing the Prokudin-Gorskii
+			photo collection</h1>
+		<h2 align="middle">April Sin</h2>
+	</header>
+
 <body>
-<h2> Project Overview </h2>
-<p> 
-	In 1907, Sergei Mikhailovich Prokudin-Gorskii (1863-1944) [Сергей Михайлович Прокудин-Горский] took color photographs of everything he saw. He accomplished this by using RGB filters and obtaining 3 glass plate negatives, RGB respectively. To view the colored images, we need to align and overlap the three plates. To improve results, it is also a good idea to make adjustments such as cropping, contrasting, white balance, color mapping, etc. The process of reproducing the color image is to be automated in this project. </p>
+	<h1> Project Overview </h1>
+	<p>
+		In 1907, Sergei Mikhailovich Prokudin-Gorskii (1863-1944) [Сергей Михайлович Прокудин-Горский] took color
+		photographs of everything he saw. He accomplished this by using RGB filters and obtaining 3 glass plate
+		negatives, RGB respectively. To view the colored images, we need to align and overlap the three plates. To
+		improve results, it is also a good idea to make adjustments such as cropping, contrasting, white balance, color
+		mapping, etc. The process of reproducing the color image is to be automated in this project. </p>
 
-<h2> Project Approach </h2>
-<h3> Alignment </h3>
-<p>
-	In this project, we are given input files with channels in the order BGR (as opposed to the conventional RGB). For simplicity, I aligned G and R channels to the B channel. My general approach is to have a fixed channel size of height <i> h </i> and width <i> w </i>. Then, we use an algorithm to find the best coordinate for the left-upper corner of each channel to which I call <i> start </i>. </p>
+	<h1> Project Approach </h1>
+	<h3> Alignment </h3>
+	<p>
+		In this project, we are given input files with channels in the order BGR (as opposed to the conventional RGB).
+		For simplicity, I aligned G and R channels to the B channel. My general approach is to have a fixed channel size
+		of height <i> h </i> and width <i> w </i>. Then, we use an algorithm to find the best coordinate for the
+		left-upper corner of each channel to which I call <i> start </i>. </p>
 
-<p><emphasis> 1. Basic Algorithm </emphasis></p>
-<p>
-	The first algorithm I adopted is to simply divide the image by three. So the <i> start </i> for BGR would be (0, 0), (h, 0) and (h*2, 0). Then stace them together using numpy.stack. This method gave pretty reliable results with low computation time.
-</p>
+	<p>
+		<emphasis> 1. Direct Mapping </emphasis>
+	</p>
+	<p>
+		The first algorithm I adopted is to simply divide the image by three. So the <i> start </i> for BGR would be (0,
+		0), (h, 0) and (h*2, 0). Then stace them together using numpy.stack. This method gave pretty reliable results
+		with low computation time.
+	</p>
 
-<p><emphasis> 2. Better Algorithms </emphasis></p>
-<p>
-	I implemented both Sum of Squared Differences (SSD) and normalized cross-correlation (NCC) algorithms. I select a window that is smaller than the channel size to create sub-matrices for G and R channels. The sub-matrices are initialized to either 0 or infinity to suit the metric. This also help with handling out of bound windows.
-<h3> Image Pyramid </h3>	
-<p>
-	At first, I tried applying pyramid to the full input image that contains all three channels. It gave a very coarse alignment probably due to extra borders in the input image.
+	<p>
+		<emphasis> 2. Simple Algorithms </emphasis>
+	</p>
+	<p>
+		I implemented both Sum of Squared Differences (output_ssd) and normalized cross-correlation (NCC) algorithms. I
+		select
+		a window that is smaller than the channel size to create sub-matrices for G and R channels. The sub-matrices are
+		initialized to either 0 or infinity to suit the metric. This also help with handling out of bound windows.
+	<h3> Image Pyramid </h3>
+	<p>
+		At first, I tried applying pyramid to the full input image that contains all three channels. It gave a very
+		coarse alignment probably due to extra borders in the input image.
 
-	Then I was going to use border detection to remove borders then apply image pyramid. However, since I was not able to implement that, I opted for another approach.
+		Then I was going to use border detection to remove borders then apply image pyramid. However, since I was not
+		able to implement that, I opted for another approach.
 
-	Instead, I use the displacements of the basic algorithm as starting estimates for the three channels, then create three separate matrices corresponding to each channel.
-</p>
+		Instead, I use the displacements of the basic algorithm as starting estimates for the three channels, then
+		create three separate matrices corresponding to each channel. Then, use the three matrices to calculate an
+		estimate alignment.
+	</p>
 
 
-<h3> Adjustments (Bells and Whisles) </h3>	
-<ul>
-	<li>
-		I added fix exposure which scales the brightest pixel as white and darkest pixel as black.
-	</li>
-	<li>
-		Both grey-world and white-world auto white balance (AWB) functions were implemented, but I tested that grey gives better results.
-	</li>
-	<li>
-		I attempted to use Canny edge detection for cropping but did not finish.
-	</li>
-</ul>
+	<h3> Bells and Whistles </h3>
+	<h4> Adjustments </h4>
+	<ul>
+		<li>
+			I added fix exposure which scales the brightest pixel as white and darkest pixel as black.
+		</li>
+		<li>
+			Both grey-world and white-world auto white balance (AWB) functions were implemented, but I tested that grey
+			gives better results.
+		</li>
+		<li>
+			I attempted to write an algorithm to detect hard borders for cropping but was not able to sucessully crop.
+		</li>
+	</ul>
+	<h4> Improving the Alignment Algorithm </h4>
+	<ul>
+		<li>
+			I used Laplacian from openCV to compare the gradients of channels.
+		</li>
+		<li>
+			I used output_canny edge detection from openCV.
+		</li>
+	</ul>
 
-<h2> After Thoughts </h2>
-<h3> Difficulties </h3>	
-	Buliding from scratch is really fun, but the downside is that it takes time to learn about new Python packages and to present the project as a whole nicely.
 
-	Since there are so many parameters, I struggled to come up with a set of standardized arguments to pass into my alignment algorithms. Initially I wanted everything to be adjustable, but it made it really hard to test results as well as the debugging followed. This contributed to not being able to align the channels as good as I wanted.
+	<h2> After Thoughts </h2>
+	<h3> Difficulties </h3>
+	Buliding from scratch is really fun, but it took some time to learn about new Python packages and to present the
+	project as a whole nicely.
+	Since there are so many parameters, I struggled to come up with a set of standardized arguments to pass into my
+	alignment algorithms. Initially I wanted everything to be adjustable, but it made it really hard to test results as
+	well as the debugging followed. This contributed to not being able to align the channels as good as I wanted.
 
-<h3> Wish List </h3>
-	I would like to implement adjustments before and after alignment. Maybe having a few repeated iterations of adjust, align, re-adjust, re-align can help find the best displacement values.
-
+	<h3> Wish List </h3>
+	I would like to implement adjustments before and after alignment. Maybe having a few repeated iterations of adjust,
+	align, re-adjust, re-align can help find the best displacement values.
 	I would also like to experiment more on adjustments that can be made to make the results look better.
 
-<h2> Project Results </h2>
-<p> The displacements are (dy, dx) relative to the leftmost upper corner of the input image, presented in the order for B, G, and R channels.
-<h3> Example Results - Low Resolution Images </h3>
-
-<img src="./output/monastery"  width="400px">
-<figcaption  > monastery.jpg, "(0, 0), (321, 0), (662, 0)"</figcaption>
-<br>
-<img src="./output/tobolsk">
-<figcaption > tobolsk.jpg, "(0, 0), (321, 0), (662, 0)"</figcaption>
-<br>
-<img src="./output/cathedral"  width="400px">
-<figcaption  > cathedral.jpg, "(0, 0), (321, 0), (662, 0)"</figcaption>
-<br>
-<h3> Example Results - High Resolution Images </h3>
-<br>
-<img src="./output/workshop"  width="400px">
-<figcaption  >workshop.tif, "(0, 0), (3189, 0), (6398, 0)"</figcaption>
-<br>
-<img src="./output/emir"  width="400px">
-<figcaption  >emir.tif, "(0, 0), (3189, 0), (6398, 0)"</figcaption>
-<br>
-<img src="./output/three_generations"  width="400px">
-<figcaption  >three_generations.tif, "(0, 0), (3189, 0), (6398, 0)"</figcaption>
-<br>
-<img src="./output/castle"  width="400px">
-<figcaption  >castle.tif, "(0, 0), (3229, 0), (6478, 0)"</figcaption>
-<br>
-<img src="./output/melons"  width="400px">
-<figcaption  >melons.tif, "(0, 0), (3221, 0), (6462, 0)"</figcaption>
-<br>
-<img src="./output/onion_church"  width="400px">
-<figcaption  >onion_church.tif, "(0, 0), (3195, 0), (6410, 0)"</figcaption>
-<br>
-<img src="./output/train"  width="400px">
-<figcaption  >train.tif, "(0, 0), (3218, 0), (6456, 0)"</figcaption>
-<br>
-<img src="./output/icon"  width="400px">
-<figcaption  >icon.tif, "(0, 0), (3224, 0), (6468, 0)"</figcaption>
-<br>
-<img src="./output/self_portrait"  width="400px">
-<figcaption  >self_portrait.tif, "(0, 0), (3231, 0), (6482, 0)"</figcaption>
-<br>
-<img src="./output/harvesters"  width="400px">
-<figcaption  >harvesters.tif, "(0, 0), (3198, 0), (6416, 0)"</figcaption>
-<br>
-<img src="./output/lady"  width="400px">
-<figcaption  >lady.tif, "(0, 0), (3192, 0), (6404, 0)"</figcaption>
-<br>
-
-<h3> Extra Results </h3>
-
-<img src="./output/cotton"  width="400px">
-<figcaption  >cotton.tif, "(0, 0), (2814, 0), (6040, 0)"</figcaption>
-<br>
-<img src="./output/church"   width="400px">
-<figcaption  >church.tif, "(0, 0), (2851, 0), (6114, 0)"</figcaption>
-<br>
-<img src="./output/makhrovye"   width="400px">
-<figcaption  >makhrovye.jpg, "(0, 0), (321, 0), (662, 0)"</figcaption>
-<br>
-<img src="./output/kapri"   width="400px">
-<figcaption  >"kapri.jpg, (0, 0), (321, 0), (662, 0)"</figcaption>
-<br>
+	<h1> Project Results </h1>
+	<p> The displacements are (dy, dx) relative to the blue input image, presented in the order for G, and R channels.
+	<p> Some pictures of adjustment are omitted since the same result is computed with canny edge detection.</p>
+		<h3> Example Results - Low Resolution Images </h3>
+	<table style="width:100%">
+		<tr>
+			<th></th>
+			<th>ssd and gradient</th>
+			<th>adjustments and canny edge detection</th>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/monastery"> -->
+				<figcaption>monastery</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/monastery">
+			</td>
+			<td>
+				<!-- <img src="./output_adjusted/monastery"> -->
+			</td>
+			<td>
+				<img src="./output_canny/monastery">
+				<figcaption>"Offset(row=3, col=2) Offset(row=-3, col=2)"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/tobolsk"> -->
+				<figcaption>tobolsk</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/tobolsk">
+			<td><img src="./output_adjusted/tobolsk">
+				<figcaption>"Offset(row=6, col=3) Offset(row=3, col=2"</figcaption>
+			</td>
+			<td>
+				<!-- <img src="./output_canny/tobolsk">
+				<figcaption>"Offset(row=6, col=1) Offset(row=1, col=1"</figcaption> -->
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/cathedral"> -->
+				<figcaption>cathedral</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/cathedral">
+			</td>
+			<td>
+				<!-- <img src="./output_adjusted/cathedral">
+				<figcaption>"Offset(row=12, col=3) Offset(row=5, col=2"</figcaption> -->
+			</td>
+			<td><img src="./output_canny/cathedral">
+				<figcaption>"Offset(row=12, col=3) Offset(row=5, col=2)"</figcaption>
+			</td>
+		</tr>
+	</table>
+	<h3> Example Results - High Resolution Images </h3>
+	<table style="width:100%">
+		<tr>
+			<th></th>
+			<th>ssd and gradient</th>
+			<th>adjustments</th>
+			<th>canny edge detection</th>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/workshop"> -->
+				<figcaption>workshop</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/workshop">
+			<!-- <td><img src="./output_adjusted/workshop">
+			</td> -->
+			<td><img src="./output_canny/workshop">
+				<figcaption>"Offset(row=120, col=-8) Offset(row=64, col=0)"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/emir"> -->
+				<figcaption>emir</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/emir">
+			<td><img src="./output_adjusted/emir">
+			</td>
+			<td><img src="./output_canny/emir">
+				<figcaption>"Offset(row=120, col=32) Offset(row=56, col=16)"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/three_generations"> -->
+				<figcaption>three_generations</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/three_generations">
+			</td>
+			<td>
+				<!-- <img src="./output_adjusted/three_generations">
+				<figcaption>"Offset(row=120, col=8) Offset(row=64, col=16)"</figcaption> -->
+			</td>
+			<td><img src="./output_canny/three_generations">
+				<figcaption>"Offset(row=120, col=8) Offset(row=64, col=16)"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/castle"> -->
+				<figcaption>castle</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/castle">
+			</td>
+			<td>
+				<!-- <img src="./output_adjusted/castle">
+				<figcaption>"Offset(row=112, col=0) Offset(row=40, col=0)"</figcaption> -->
+			</td>
+			<td><img src="./output_canny/castle">
+				<figcaption>"Offset(row=112, col=0) Offset(row=40, col=0)"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/melons"> -->
+				<figcaption>melons</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/melons">
+			<td><img src="./output_adjusted/melons">
+			</td>
+			<td><img src="./output_canny/melons">
+				<figcaption>"Offset(row=120, col=-24) Offset(row=96, col=8)"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/onion_church"> -->
+				<figcaption>onion_church</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/onion_church">
+			<td><img src="./output_adjusted/onion_church">
+			</td>
+			<td><img src="./output_canny/onion_church">
+				<figcaption>"Offset(row=120, col=32) Offset(row=56, col=24"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/train"> -->
+				<figcaption>train</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/train">
+			</td>
+			<td>
+				<img src="./output_adjusted/train">
+				<figcaption>"Offset(row=96, col=24) Offset(row=48, col=0)"</figcaption>
+			</td>
+			<td><img src="./output_canny/train">
+				<figcaption>"Offset(row=96, col=24) Offset(row=56, col=0)"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/icon"> -->
+				<figcaption>icon</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/icon">
+			<td><img src="./output_adjusted/icon">
+			</td>
+			<td><img src="./output_canny/icon">
+				<figcaption>"Offset(row=104, col=24) Offset(row=48, col=16)"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/self_portrait"> -->
+				<figcaption>self_portrait</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/self_portrait">
+			<td><img src="./output_adjusted/self_portrait">
+			</td>
+			<td><img src="./output_canny/self_portrait">
+				<figcaption>"Offset(row=112, col=-8) Offset(row=88, col=24)"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/harvesters"> -->
+				<figcaption>harvesters</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/harvesters">
+			<td><img src="./output_adjusted/harvesters">
+			</td>
+			<td><img src="./output_canny/harvesters">
+				<figcaption>"Offset(row=120, col=0) Offset(row=72, col=16"</figcaption>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<!-- <img src="./output_directstack/lady"> -->
+				<figcaption>lady</figcaption>
+			</td>
+			<td>
+				<img src="./output_ssd/lady">
+			</td>
+			<td>
+				<img src="./output_adjusted/lady">
+				<figcaption>"Offset(row=0, col=-16) Offset(row=-80, col=-8)"</figcaption>
+			</td>
+			<td><img src="./output_canny/lady">
+				<figcaption>"Offset(row=64, col=-16) Offset(row=64, col=0"</figcaption>
+			</td>
+		</tr>
+	</table>
 
 </body>
+
+<h3> Extra Results - Self-selected images</h3>
+<table style="width:100%">
+	<tr>
+		<th></th>
+		<th>ssd and gradient</th>
+		<th>adjustments</th>
+		<th>canny edge detection</th>
+	</tr>
+	<tr>
+		<td>
+			<!-- <img src="./output_directstack/makhrovye"> -->
+			<figcaption>makhrovye</figcaption>
+		</td>
+		<td>
+			<img src="./output_ssd/makhrovye">
+		<td><img src="./output_adjusted/makhrovye">
+			<figcaption>"Offset(row=6, col=1) Offset(row=1, col=1)"</figcaption>
+		</td>
+		<td><img src="./output_canny/makhrovye">
+			<figcaption>"Offset(row=6, col=1) Offset(row=1, col=1)"</figcaption>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<!-- <img src="./output_directstack/kapri"> -->
+			<figcaption>kapri</figcaption>
+		</td>
+		<td>
+			<img src="./output_ssd/kapri">
+		<td><img src="./output_adjusted/kapri">
+		</td>
+		<td><img src="./output_canny/kapri">
+			<figcaption>"Offset(row=10, col=-1) Offset(row=4, col=-1)"</figcaption>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<!-- <img src="./output_directstack/cotton"> -->
+			<figcaption>cotton</figcaption>
+		</td>
+		<td>
+			<img src="./output_ssd/cotton">
+		<td><img src="./output_adjusted/cotton">
+		</td>
+		<td><img src="./output_canny/cotton">
+			<figcaption>"Offset(row=104, col=-16) Offset(row=88, col=24)"</figcaption>
+		</td>
+	</tr>
+</table>
+</body>
+
 </html>
