@@ -1,0 +1,31 @@
+data/monastery.jpg
+133331 (341, 391)
+33150 (195, 170)
+133331 (341, 391)
+33150 (195, 170)
+Offset(row=4, col=2) Offset(row=-4, col=2)
+data/makhrovye.jpg
+135377 (341, 397)
+33660 (198, 170)
+135377 (341, 397)
+33660 (198, 170)
+Offset(row=6, col=2) Offset(row=0, col=0)
+data/tobolsk.jpg
+135036 (341, 396)
+33660 (198, 170)
+135036 (341, 396)
+33660 (198, 170)
+Offset(row=8, col=2) Offset(row=4, col=2)
+data/cathedral.jpg
+132990 (341, 390)
+33150 (195, 170)
+132990 (341, 390)
+33150 (195, 170)
+Offset(row=8, col=0) Offset(row=0, col=0)
+data/kapri.jpg
+136741 (341, 401)
+34000 (200, 170)
+136741 (341, 401)
+34000 (200, 170)
+Offset(row=20, col=-18) Offset(row=2, col=0)
+"rumtime is 2.2404370307922363 seconds"
